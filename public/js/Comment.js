@@ -7,7 +7,7 @@
 
   var CommentMetaStore = {
     inited: false, 
-    userToken: window.localStorage[getActionKey('userToken')] || null,
+    userToken: null,
 
     init: function(callback) {
       if (this.inited) {
@@ -16,17 +16,21 @@
 
       this.inited = true;
 
-      if (!this.userToken) {
-        $.ajax({
-          dataType: "jsonp",
-          url: CanvasConstants.tokenURL,
-          success: function(data) {
-            console.log(data);
-            this.userToken = data.user_token;
-            window.localStorage[getActionKey('userToken')] = this.userToken;
+      if (true || !this.userToken) {
+        var frame = $('<iframe id="tokenFrame" src="' + CanvasConstants.tokenURL + '" width="0" height="0"/>');
+        frame.load(function () {
+          window.addEventListener("message", function (event) {
+            if (event.source !== frame[0].contentWindow) {
+              return;
+            }
+           
+            this.userToken = event.data;
             callback(this.userToken);
-          }
-        })
+          }, false);
+          frame[0].contentWindow.postMessage("GET TOKEN", "*");
+        });
+
+        $(document.body).append(frame);
       } else {
         callback(this.userToken)
       }
