@@ -8,10 +8,10 @@ class Canvas_Admin_Moderate {
       return;
     }
 
-    add_action('admin_menu', array('Canvas_Admin_Moderate', 'hook_admin_menu'));
+    add_action('admin_menu', array('Canvas_Admin_Moderate', 'action_admin_menu'));
   }
 
-  public static function hook_admin_menu() {
+  public static function action_admin_menu() {
     add_comments_page(
       'Canvas Flagged',
       'Canvas Flagged',

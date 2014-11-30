@@ -1,2 +1,2 @@
-// <?php
-// // Block directory listing.
+<?php
+// Block directory listing.

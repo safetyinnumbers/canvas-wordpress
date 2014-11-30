@@ -11,7 +11,14 @@ class Canvas_Admin {
       return;
     }
 
+    add_action('admin_init', array('Canvas_Admin', 'action_admin_init'));
+
     Canvas_Admin_Config::init();
     Canvas_Admin_Moderate::init();
+  }
+
+  public static function action_admin_init() {
+    register_setting('canvas', 'network_url');
+    register_setting('canvas', 'network_sitetoken');
   }
 }
