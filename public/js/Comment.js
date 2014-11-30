@@ -2,52 +2,80 @@
   var $ = jQuery;
 
   function getActionKey(key) {
-    return 'CommentActionStore:' + key;
+    return 'CommentMetaStore:' + key;
   }
 
-  var CommentActionStore = {
-    // TODO: fetch these sorts of details from the WordPress site.
+  var CommentMetaStore = {
+    inited: false, 
+    userToken: window.localStorage[getActionKey('userToken')] || null,
 
-    get: function(commentId) {
+    init: function(callback) {
+      if (this.inited) {
+        return;
+      }
+
+      this.inited = true;
+
+      if (!this.userToken) {
+        $.ajax({
+          dataType: "jsonp",
+          url: CanvasConstants.tokenURL,
+          success: function(data) {
+            console.log(data);
+            this.userToken = data.user_token;
+            window.localStorage[getActionKey('userToken')] = this.userToken;
+            callback(this.userToken);
+          }
+        })
+      } else {
+        callback(this.userToken)
+      }
+    },
+
+    getUserToken: function() {
+      return this.userToken;
+    },
+
+    getActions: function(commentId) {
       var raw = window.localStorage[getActionKey(commentId)];
       return (raw) ? JSON.parse(raw) : {};
     },
 
     putLocalAction: function(commentId, action, value) {
-      var actions = CommentActionStore.get(commentId);
+      var actions = CommentMetaStore.getActions(commentId);
       actions[action] = value;
       window.localStorage[getActionKey(commentId)] = JSON.stringify(actions);
+    },
+
+    putAction: function(commentId, action, value) {
+      $.ajax({
+        type: "post",
+        dataType: "json",
+        url: CanvasConstants.ajaxURL,
+        data: $.merge({
+          action: "canvas_" + action, 
+          userToken: this.userToken
+        }, value)
+      });
+
+      this.putLocalAction(commentId, action, value);
     }
   };
 
-  function sendAction(action, details) {
-    // TODO: fetch the user token.
-
-    $.ajax({
-      type: "post",
-      dataType: "json",
-      url: CanvasConstants.ajaxURL,
-      data: $.merge({action: action, userToken: null}, details)
-    });
-  }
-
   var CommentActions = {
     upvote: function(commentId) {
-      CommentActionStore.putLocalAction(commentId, 'vote', 'up');
-      sendAction('canvas_vote', {type: 'up'});
+      CommentMetaStore.putAction(commentId, 'vote', {type: 'up'});
     },
 
     downvote: function(commentId) {
-      CommentActionStore.putLocalAction(commentId, 'vote', 'down');
-      sendAction('canvas_vote', {type: 'down'});
+      CommentMetaStore.putAction(commentId, 'vote', {type: 'down'});
     },
 
     flag: function(commentId, type, details) {
-      CommentActionStore.putLocalAction(commentId, 'flag', {
+      CommentMetaStore.putAction(commentId, 'flag', {
         type: type,
         details: details
       });
-      sendAction('canvas_flag', {type: 'type', details: 'details'});
     }
   };
 
@@ -153,7 +181,7 @@
   };
 
   Comment.prototype.updateActions = function() {
-    var actions = CommentActionStore.get(this.id);
+    var actions = CommentMetaStore.getActions(this.id);
 
     for (var action in actions) {
       switch (action) {
@@ -190,8 +218,19 @@
     this.commentNode.find('.reply').append(moderation);
   };
 
-  $('.comment').each(function(idx, comment) {
-    new Comment($(comment));
+  function CommentForm(node) {
+    node.prepend($(
+      '<input type="hidden" name="userToken" value="'+
+        CommentMetaStore.userToken + 
+      '"/>'
+    ));
+  }
+
+  CommentMetaStore.init(function (userToken) {
+    $('.comment').each(function(idx, comment) {
+      new Comment($(comment));
+    });
+
+    new CommentForm($('#commentform'));
   });
-  
 })(window);
