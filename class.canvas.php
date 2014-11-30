@@ -13,7 +13,7 @@ class Canvas {
     add_action('wp_ajax_nopriv_canvas_vote', array('Canvas', 'action_wp_ajax_vote'));
     add_action('wp_ajax_canvas_flag', array('Canvas', 'action_wp_ajax_flag'));
     add_action('wp_ajax_nopriv_canvas_flag', array('Canvas', 'action_wp_ajax_flag'));
-    add_action('wp_insert_comment', array('Canvas', 'action_wp_insert_comment'));
+    add_action('wp_insert_comment', array('Canvas', 'action_wp_insert_comment'), 99, 2);
   }
 
   public static function action_wp_enqueue_scripts() {
@@ -44,49 +44,57 @@ class Canvas {
 
   public static function action_wp_ajax_vote() {
     $id = $_POST['id'];
-    $user_token = $_POST['user_token'];
+    $user_token = $_POST['userToken'];
     $type = $_POST['type'];
 
     $comment_guid = get_comment_meta($id, 'guid', true);
-    if (!is_array($comment_guid)) return;
+    if (is_array($comment_guid)) return;
+
+    $network =  get_option('network_url');
+    $network .= ($type == 'up') ? "comment/$comment_guid/upvote"
+                                : "comment/$comment_guid/downvote";
 
     $response = wp_remote_post(
-      get_option('network_url')
-         . ($type == 'up') ? "comment/$comment_guid/upvote"
-                           : "comment/$comment_guid/downvote",
-      array('body' => json_encode(array(
-        'user_token' => get_comment_meta($id, 'user_token', true),
-        'site_token' => get_option('network_sitetoken')
-      )))
+      $network,
+      array(
+        'body' => json_encode(array(
+          'user_token' => get_comment_meta($id, 'user_token', true),
+          'site_token' => get_option('network_sitetoken')
+        )),
+        'headers' => array('Content-Type' => 'application/json')
+      )
     );
 
     if (!is_wp_error($response)) {
-      $response_details = json_decode($response);
+      $response_details = json_decode($response['body']);
       self::update_comment_meta($id, $response_details);
     }
   }
 
   public static function action_wp_ajax_flag() {
     $id = $_POST['id'];
-    $user_token = $_POST['user_token'];
+    $user_token = $_POST['userToken'];
     $type = $_POST['type'];
     $details = $_POST['details'];
 
     $comment_guid = get_comment_meta($id, 'guid', true);
-    if (!is_array($comment_guid)) return;
+    if (is_array($comment_guid)) return;
 
     $response = wp_remote_post(
       get_option('network_url') . "comment/$comment_guid/flag",
-      array('body' => json_encode(array(
-        'user_token' => get_comment_meta($id, 'user_token', true),
-        'site_token' => get_option('network_sitetoken'),
-        'flag_id' => $type,
-        'description' => $details
-      )))
+      array(
+        'body' => json_encode(array(
+          'user_token' => get_comment_meta($id, 'user_token', true),
+          'site_token' => get_option('network_sitetoken'),
+          'flag_id' => $type,
+          'description' => $details
+        )),
+        'headers' => array('Content-Type' => 'application/json')
+      )
     );
 
     if (!is_wp_error($response)) {
-      $response_details = json_decode($response);
+      $response_details = json_decode($response['body']);
       self::update_comment_meta($id, $response_details);
     }
 
@@ -98,16 +106,19 @@ class Canvas {
 
     $response = wp_remote_post(
       get_option('network_url') . 'comment',
-      array('body' => json_encode(array(
-        'user_token' => $_POST['userToken'],
-        'site_token' => get_option('network_sitetoken'),
-        'text' => $comment->comment_content,
-        'ip' => $comment->comment_author_IP
-      )))
+      array(
+        'body' => json_encode(array(
+          'user_token' => $_POST['userToken'],
+          'site_token' => get_option('network_sitetoken'),
+          'comment' => $comment->comment_content,
+          'ip' => $comment->comment_author_IP
+        )),
+        'headers' => array('Content-Type' => 'application/json')
+      )
     );
 
     if (!is_wp_error($response)) {
-      $response_details = json_decode($response);
+      $response_details = json_decode($response['body']);
       add_comment_meta($id, 'guid', $response_details->comment_id);
       self::update_comment_meta($id, $response_details->comment_cred);
     }

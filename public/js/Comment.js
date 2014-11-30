@@ -52,10 +52,13 @@
         type: "post",
         dataType: "json",
         url: CanvasConstants.ajaxURL,
-        data: $.merge({
+        data: {
           action: "canvas_" + action, 
-          userToken: this.userToken
-        }, value)
+          userToken: this.userToken,
+          id: commentId,
+          type: value.type,
+          details: value.details
+        }
       });
 
       this.putLocalAction(commentId, action, value);
@@ -72,6 +75,8 @@
     },
 
     flag: function(commentId, type, details) {
+      console.log(arguments);
+
       CommentMetaStore.putAction(commentId, 'flag', {
         type: type,
         details: details
@@ -80,9 +85,11 @@
   };
 
   var FLAGS = {
-    'spam': 'This comment is spam',
-    'abuse': 'This comment is abusive',
+    '1': 'This comment is spam',
+    '2': 'This comment is abusive',
   };
+
+  var FLAG_OTHER = '3';
 
   function CommentFlag(id, onCancel, onSubmit) {
     var flag = $(
@@ -94,7 +101,7 @@
         '<form class="comment-flag-form">' +
           '<div class="comment-options">' +
             '<p><label>' +
-              '<input type="radio" class="comment-option-other" data-flag="other" name="flags-' + id + '"/>' +
+              '<input type="radio" class="comment-option-other" data-flag="' + FLAG_OTHER + '" name="flags-' + id + '"/>' +
               '<i>Other</i>' +
             '</label></p>' +
           '</div>' +
@@ -127,7 +134,7 @@
     flag.find('input[type=radio]').change(function(node) {
       var flagId = $(this).attr('data-flag');
 
-      if (flagId === 'other') {
+      if (flagId === FLAG_OTHER) {
         otherDetails.show();
       } else {
         otherDetails.hide();
@@ -136,7 +143,7 @@
     });
     flag.find('.comment-other-submit').click(function(e) {
       e.preventDefault();
-      onSubmit('other', flag.find('.comment-other-description').val());
+      onSubmit(FLAG_OTHER, flag.find('.comment-other-description').val());
     });
 
     return flag;
