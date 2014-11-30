@@ -20,15 +20,26 @@
     }
   };
 
-  var CommentActions = {
-    // TODO: send ajax requests here.
+  function sendAction(action, details) {
+    // TODO: fetch the user token.
 
+    $.ajax({
+      type: "post",
+      dataType: "json",
+      url: CanvasConstants.ajaxURL,
+      data: $.merge({action: action, userToken: null}, details)
+    });
+  }
+
+  var CommentActions = {
     upvote: function(commentId) {
       CommentActionStore.putLocalAction(commentId, 'vote', 'up');
+      sendAction('canvas_vote', {type: 'up'});
     },
 
     downvote: function(commentId) {
       CommentActionStore.putLocalAction(commentId, 'vote', 'down');
+      sendAction('canvas_vote', {type: 'down'});
     },
 
     flag: function(commentId, type, details) {
@@ -36,6 +47,7 @@
         type: type,
         details: details
       });
+      sendAction('canvas_flag', {type: 'type', details: 'details'});
     }
   };
 
