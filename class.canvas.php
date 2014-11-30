@@ -30,12 +30,14 @@ class Canvas {
       'CanvasConstants',
       array(
         'ajaxURL' => admin_url('admin-ajax.php'),
-        'tokenURL' => get_option('network_url') . 'user/token'
+        'tokenURL' => get_option('network_url') . 'token.html'
       )
     );
   }
 
   private static function update_comment_meta($id, $cred) {
+
+
     // TODO: based on the cred object that comes back enqueue it.
     // TODO: based on a threshold list it as positive or negative.
     
@@ -97,12 +99,11 @@ class Canvas {
       $response_details = json_decode($response['body']);
       self::update_comment_meta($id, $response_details);
     }
-
   }
 
   public static function action_wp_insert_comment($id, $comment) {
     add_comment_meta($id, 'user_token', $_POST['userToken']);
-    add_comment_meta($id, 'overridden', false);
+    add_comment_meta($id, 'overridden', serialize(false));
 
     $response = wp_remote_post(
       get_option('network_url') . 'comment',
