@@ -9,6 +9,7 @@ class Canvas {
     }
 
     add_action('wp_enqueue_scripts', array('Canvas', 'action_wp_enqueue_scripts'));
+
     add_action('wp_ajax_canvas_vote', array('Canvas', 'action_wp_ajax_vote'));
     add_action('wp_ajax_nopriv_canvas_vote', array('Canvas', 'action_wp_ajax_vote'));
     add_action('wp_ajax_canvas_flag', array('Canvas', 'action_wp_ajax_flag'));
@@ -17,6 +18,11 @@ class Canvas {
   }
 
   public static function action_wp_enqueue_scripts() {
+    wp_enqueue_style(
+      'canvas-style-comment',
+      CANVAS_PLUGIN_URL . 'public/css/Comment.css'
+    );
+
     wp_enqueue_script(
       'canvas-script-comment', 
       CANVAS_PLUGIN_URL . 'public/js/Comment.js',
@@ -60,7 +66,7 @@ class Canvas {
       $network,
       array(
         'body' => json_encode(array(
-          'user_token' => get_comment_meta($id, 'user_token', true),
+          'user_token' => $user_token,
           'site_token' => get_option('network_sitetoken')
         )),
         'headers' => array('Content-Type' => 'application/json')
@@ -86,7 +92,7 @@ class Canvas {
       get_option('network_url') . "comment/$comment_guid/flag",
       array(
         'body' => json_encode(array(
-          'user_token' => get_comment_meta($id, 'user_token', true),
+          'user_token' => $user_token,
           'site_token' => get_option('network_sitetoken'),
           'flag_id' => $type,
           'description' => $details

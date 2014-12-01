@@ -16,7 +16,7 @@
 
       this.inited = true;
 
-      if (true || !this.userToken) {
+      if (true || !CommentMetaStore.userToken) {
         var frame = $('<iframe id="tokenFrame" src="' + CanvasConstants.tokenURL + '" width="0" height="0"/>');
         frame.load(function () {
           window.addEventListener("message", function (event) {
@@ -24,20 +24,21 @@
               return;
             }
            
-            this.userToken = event.data;
-            callback(this.userToken);
+            CommentMetaStore.userToken = event.data;
+            console.log(CommentMetaStore.userToken)
+            callback(CommentMetaStore.userToken);
           }, false);
           frame[0].contentWindow.postMessage("GET TOKEN", "*");
         });
 
         $(document.body).append(frame);
       } else {
-        callback(this.userToken)
+        callback(CommentMetaStore.userToken)
       }
     },
 
     getUserToken: function() {
-      return this.userToken;
+      return CommentMetaStore.userToken;
     },
 
     getActions: function(commentId) {
@@ -58,7 +59,7 @@
         url: CanvasConstants.ajaxURL,
         data: {
           action: "canvas_" + action, 
-          userToken: this.userToken,
+          userToken: CommentMetaStore.userToken,
           id: commentId,
           type: value.type,
           details: value.details
@@ -79,8 +80,6 @@
     },
 
     flag: function(commentId, type, details) {
-      console.log(arguments);
-
       CommentMetaStore.putAction(commentId, 'flag', {
         type: type,
         details: details
@@ -159,7 +158,8 @@
 
   function Comment(node) {
     this.id = node.attr('id').replace('comment-', '');
-    this.commentNode = node.find('.comment-body');
+    this.commentBody = node.find('.comment-body');
+    this.commentNodes = this.commentBody.children();
     this.flagNode = null;
     this.render();
   }    
@@ -168,10 +168,15 @@
     event.preventDefault();
     this.flagNode = new CommentFlag(
       this.id, 
-      function() { this.flagNode.replaceWith(this.commentNode); }.bind(this),
+      function(event) {
+      event.preventDefault(); 
+        this.commentBody.empty(); 
+        this.commentBody.append(this.commentNodes);
+      }.bind(this),
       this.handleCompleteFlag.bind(this)
     );
-    this.commentNode.replaceWith(this.flagNode);
+    this.commentBody.empty();
+    this.commentBody.append(this.flagNode);
   };
 
   Comment.prototype.handleCompleteFlag = function(type, details) {
@@ -226,7 +231,7 @@
     moderation.append(this.votingButtons, this.flagButton);
 
     this.updateActions();
-    this.commentNode.find('.reply').append(moderation);
+    this.commentBody.find('.reply').append(moderation);
   };
 
   function CommentForm(node) {
@@ -238,6 +243,8 @@
   }
 
   CommentMetaStore.init(function (userToken) {
+    console.log(userToken)
+
     $('.comment').each(function(idx, comment) {
       new Comment($(comment));
     });

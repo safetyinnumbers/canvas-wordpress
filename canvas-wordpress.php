@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: canvas-wordpress
+ * Plugin Name: Safety in Numbers
  * Plugin URI: https://github.com/hellojwilde/canvas-wordpress
- * Description: Fight harassment in comments.
+ * Description: Fight harassment in comments. <strong>Because together we count.</strong>
  * Author: Team "Also Awesome"
  * Author URI: https://github.com/hellojwilde/canvas-wordpress
  * Version: 0.1.0

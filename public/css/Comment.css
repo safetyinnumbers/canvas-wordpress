@@ -1,0 +1,54 @@
+.comment-moderate {
+  float: right;
+}
+
+.comment-moderate a,
+.comment-moderate span {
+  margin: 0 10px;
+}
+
+.comment-voting {
+  float: left;
+}
+
+.comment-flag h3 {
+  margin-top: 0;
+   font: 900 16px/1.5 Lato, sans-serif;
+margin: 0;
+text-transform: uppercase;
+margin-bottom: 24px;
+}
+
+.cancel-comment-flag-link {
+  float: right;
+}
+
+.comment-options p {
+  margin: 5px 0;
+}
+
+.comment-options input {
+  margin-right: 5px;
+}
+
+.comment-other-description {
+  margin: 10px 0;
+}
+
+.cancel-comment-flag-link {
+  color: #2b2b2b;
+  float: right;
+  height: 24px;
+  overflow: hidden;
+  width: 24px;
+}
+
+.cancel-comment-flag-link::before {
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  font: normal 16px/1 Genericons;
+  text-decoration: inherit;
+  vertical-align: text-bottom;
+  content: "\f405";
+  font-size: 32px;
+}

@@ -62,8 +62,8 @@ class Canvas_Admin_Config {
 
   public static function action_admin_menu() {
     add_options_page(
-      'Canvas Settings',
-      'Canvas Settings',
+      'Safety in Numbers',
+      'Safety in Numbers',
       'manage_options',
       'options_page_slug',
       array('Canvas_Admin_Config', 'render')
